@@ -5,15 +5,19 @@
 # Directory where object files (.o) and dependency files (.d) are placed.
 BUILD_DIR := build
 
+EXECUTABLE_NAME := baseconv
 # ':=' assigns immediately. '=' assigns dynamically when accessed.
 # TARGET is the primary executable required at the end of the build.
-TARGET := $(BUILD_DIR)/base-convert
+TARGET := $(BUILD_DIR)/$(EXECUTABLE_NAME)
 
 # Directory containing source implementation (.c) files.
 SRC_DIR := src
 
 # Directory containing interface header (.h) files.
 INC_DIR := include
+
+# Root installation directory
+PREFIX ?= /usr/local
 
 # Toolchain compiler driver.
 CC := gcc
@@ -43,7 +47,7 @@ OBJS := $(patsubst $(SRC_DIR)/%.c, $(BUILD_DIR)/%.o, $(SRCS))
 
 # .PHONY tells make these targets are actions rather than real disk files.
 # Prevents collisions if a file with the target name exists in the folder.
-.PHONY: all clean run
+.PHONY: all clean run install uninstall
 
 # ==============================================================================
 # BUILD RULES
@@ -80,6 +84,16 @@ run: $(TARGET)
 # Recursively removes the build directory and all generated artifacts.
 clean:
 	rm -rf $(BUILD_DIR)
+
+#First ensures the root installation directory $(PREFIX) exists, then copies
+#the final executable into it with permissions set to 755.
+install: $(TARGET)
+	install -d $(DESTDIR)$(PREFIX)/bin
+	install -m 755 $(TARGET) $(DESTDIR)$(PREFIX)/bin/$(EXECUTABLE_NAME)
+
+#Uninstalls the executable from the root installation directory
+uninstall:
+	rm -f $(DESTDIR)$(PREFIX)/bin/$(EXECUTABLE_NAME)
 
 # ==============================================================================
 # HEADER DEPENDENCY INGESTION
