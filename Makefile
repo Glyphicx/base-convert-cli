@@ -10,6 +10,7 @@ EXECUTABLE_NAME := baseconv
 # TARGET is the primary executable required at the end of the build.
 TARGET := $(BUILD_DIR)/$(EXECUTABLE_NAME)
 
+TEST_SCRIPT := test_baseconv.py
 # Directory containing source implementation (.c) files.
 SRC_DIR := src
 
@@ -22,6 +23,9 @@ PREFIX ?= /usr/local
 # Toolchain compiler driver.
 CC := gcc
 
+# Python version cmd
+PYTHON := python3
+
 # Flags for compiling .c source files into .o object files.
 # -Wall -Wextra: Enable core and diagnostic warnings.
 # -pedantic: Enforce strict ISO C standards.
@@ -30,10 +34,16 @@ CC := gcc
 # -O3: Maximum performance optimization.
 # -MMD: Generate .d dependency files tracking included headers.
 # -MP: Add phony rules for headers to avoid errors if renamed or deleted.
-CFLAGS = -Wall -Wextra -pedantic -std=c99 -I$(INC_DIR) -O3 -MMD -MP
+CFLAGS := -Wall -Wextra -pedantic -std=c99 -I$(INC_DIR) -O3 -MMD -MP
 
 # Flags passed to the linker driver (e.g., library search directories).
-LDFLAGS = -Wall -Wextra -std=c99 -O3
+LDFLAGS := -O3
+
+# General flags for running python scripts
+PYTHON_FLAGS := -B
+
+# Flags for running test scripts
+TEST_FLAGS := -v
 
 # Automatically discover all .c files and translate to matching .o paths.
 # wildcard: Expands pattern to space-separated list of existing files.
@@ -47,7 +57,7 @@ OBJS := $(patsubst $(SRC_DIR)/%.c, $(BUILD_DIR)/%.o, $(SRCS))
 
 # .PHONY tells make these targets are actions rather than real disk files.
 # Prevents collisions if a file with the target name exists in the folder.
-.PHONY: all clean run install uninstall
+.PHONY: all clean run install uninstall test
 
 # ==============================================================================
 # BUILD RULES
@@ -94,6 +104,9 @@ install: $(TARGET)
 #Uninstalls the executable from the root installation directory
 uninstall:
 	rm -f $(DESTDIR)$(PREFIX)/bin/$(EXECUTABLE_NAME)
+
+test: $(TARGET)
+	$(PYTHON) $(PYTHON_FLAGS) $(TEST_SCRIPT) $(TEST_FLAGS)
 
 # ==============================================================================
 # HEADER DEPENDENCY INGESTION
